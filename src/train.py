@@ -9,7 +9,9 @@ from torchvision import transforms
 
 from data.dataset import Dataset
 from model.ADdetector import resnet50
+from model.ADdetector import resnet34
 from utils.loss import yololoss
+from PIL import Image
 
 # parse args
 parser = argparse.ArgumentParser()
@@ -17,9 +19,9 @@ parser.add_argument('--yolo_S', default=14, type=int, help='YOLO grid num')
 parser.add_argument('--yolo_B', default=2, type=int, help='YOLO box num')
 parser.add_argument('--yolo_C', default=4, type=int, help='detection class num')
 
-parser.add_argument('--num_epochs', default=10, type=int, help='number of epochs')
-parser.add_argument('--batch_size', default=12, type=int, help='batch size')
-parser.add_argument('--learning_rate', default=1e-5, type=float, help='learning rate')
+parser.add_argument('--num_epochs', default=50, type=int, help='number of epochs')
+parser.add_argument('--batch_size', default=32, type=int, help='batch size')
+parser.add_argument('--learning_rate', default=4e-5, type=float, help='learning rate')
 
 parser.add_argument('--seed', default=666, type=int, help='random seed')
 parser.add_argument('--dataset_root', default='./dataset', type=str, help='dataset root')
@@ -32,7 +34,8 @@ args = parser.parse_args()
 
 
 def load_pretrained(net):
-    resnet = torchvision.models.resnet50(pretrained=True)
+    # resnet = torchvision.models.resnet50(pretrained=True)
+    resnet = torchvision.models.resnet34(pretrained=True)
     resnet_state_dict = resnet.state_dict()
 
     net_dict = net.state_dict()
@@ -65,7 +68,10 @@ torch.manual_seed(args.seed)
 ####################################################################
 criterion = yololoss(args, l_coord=args.l_coord, l_noobj=args.l_noobj)
 
-ad_detector = resnet50(args=args)
+# ad_detector = resnet50(args=args)
+ad_detector = resnet34(args=args)
+
+
 if args.load_pretrain:
     load_pretrained(ad_detector)
 ad_detector = ad_detector.to(device)
@@ -87,7 +93,23 @@ train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_
 ###################################################################
 # TODO: Please fill the codes below to initialize the validation dataset
 ##################################################################
-val_dataset = Dataset(args, split='val', transform=[transforms.ToTensor()])
+
+train_transform = [
+    lambda img: Image.fromarray((img * 255).astype('uint8')) if img.dtype == np.float32 else Image.fromarray(img),
+    transforms.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.05),
+    transforms.RandomHorizontalFlip(0.5),
+    transforms.ToTensor(),
+]
+
+val_transform = [
+    lambda img: Image.fromarray((img * 255).astype('uint8')) if img.dtype == np.float32 else Image.fromarray(img),
+    transforms.ToTensor(),
+]
+
+train_dataset = Dataset(args, split='train', transform=train_transform)
+val_dataset   = Dataset(args, split='val',   transform=val_transform)
+
+# val_dataset = Dataset(args, split='val', transform=[transforms.ToTensor()])
 val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False, num_workers=4)
 ##################################################################
 

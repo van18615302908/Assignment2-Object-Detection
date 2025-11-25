@@ -6,6 +6,7 @@ import pickle
 
 from data.dataset import CAR_CLASSES, COLORS, load_json
 from model.ADdetector import resnet50
+from model.ADdetector import resnet34
 from utils.util import *
 
 
@@ -109,6 +110,8 @@ class Evaluation:
         return aps
 
 
+
+
 if __name__ == '__main__':
     # os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
@@ -119,7 +122,7 @@ if __name__ == '__main__':
 
     parser.add_argument('--dataset_root', default='./dataset', type=str, help='dataset root')
     parser.add_argument('--split', default='val', type=str, help="dataset split in ['val', 'test']")
-    parser.add_argument('--model_path', default="./checkpoints/ad_detector_best.pth", help='Pretrained Model Path')
+    parser.add_argument('--model_path', default="./checkpoints_11251604/ad_detector_epoch_14.pth", help='Pretrained Model Path')
     parser.add_argument('--output_file', default="./result.pkl", help='PKL for evaluation')
     parser.add_argument('--pos_threshold', default=0.3, type=float, help='Confidence threshold for positive prediction')
     parser.add_argument('--nms_threshold', default=0.5, type=float, help='Threshold for non maximum suppression')
@@ -133,6 +136,7 @@ if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     print('DATA PREPARING...')
+
     annotation_path = os.path.join(args.dataset_root, 'annotations', 'instance_%s.json' % args.split)
     annotations = load_json(annotation_path)
 
@@ -148,7 +152,7 @@ if __name__ == '__main__':
     print('DONE.')
     print('START EVALUATION...')
 
-    model = resnet50(args=args).to(device)
+    model = resnet34(args=args).to(device)
 
     # if torch.cuda.device_count() > 1:
     #     model = nn.DataParallel(model)

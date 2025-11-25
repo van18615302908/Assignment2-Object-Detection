@@ -4,11 +4,15 @@ import argparse
 import os
 import pickle
 
-from model.ADdetector import resnet50
+# from model.ADdetector import resnet50
+from model.ADdetector import resnet34
 from utils.util import *
 
 if __name__ == '__main__':
     # os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+
+
+# /mmu_mllm_hdd_2/fanyiyang/work_files_1125/Assignment2-Object-Detection/checkpoints_11251604/ad_detector_epoch_9.pth
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--yolo_S', default=14, type=int, help='YOLO grid num')
@@ -16,8 +20,8 @@ if __name__ == '__main__':
     parser.add_argument('--yolo_C', default=4, type=int, help='detection class num')
 
     parser.add_argument('--dataset_root', default='./dataset', type=str, help='dataset root')
-    parser.add_argument('--split', default='test', type=str, help="dataset split in ['val', 'test']")
-    parser.add_argument('--model_path', default="./checkpoints/ad_detector_best.pth", help='Pretrained Model Path')
+    parser.add_argument('--split', default='val', type=str, help="dataset split in ['val', 'test']")
+    parser.add_argument('--model_path', default="./checkpoints_11251604/ad_detector_epoch_9.pth", help='Pretrained Model Path')
     parser.add_argument('--output_file', default="./result.pkl", help='PKL for evaluation')
     parser.add_argument('--pos_threshold', default=0.1, type=float, help='Confidence threshold for positive prediction')
     parser.add_argument('--nms_threshold', default=0.5, type=float, help='Threshold for non maximum suppression')
@@ -32,7 +36,7 @@ if __name__ == '__main__':
 
     print('START EVALUATION...')
 
-    model = resnet50(args=args).to(device)
+    model = resnet34(args=args).to(device)
 
     # if torch.cuda.device_count() > 1:
     #     model = nn.DataParallel(model)
@@ -40,7 +44,7 @@ if __name__ == '__main__':
     model.load_state_dict(torch.load(args.model_path)['state_dict'])
     model.eval()
 
-    test_root = os.path.join(args.dataset_root, args.split, 'image')
+    test_root = os.path.join(args.dataset_root, args.split)
     for image_name in tqdm(os.listdir(test_root)):
         image_path = os.path.join(test_root, image_name)
         result = inference(args, model, image_path)

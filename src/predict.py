@@ -5,6 +5,7 @@ import torch
 
 from data.dataset import COLORS, CAR_CLASSES
 from model.ADdetector import resnet50
+from model.ADdetector import resnet34
 from utils.util import inference
 
 
@@ -42,7 +43,7 @@ if __name__ == '__main__':
     parser.add_argument('--yolo_C', default=4, type=int, help='detection class num')
 
     parser.add_argument('--image_path', default="./dataset/val/xxx.jpg", help='Path to Image file')
-    parser.add_argument('--model_path', default="./checkpoints/ad_detector_best.pth", help='Pretrained Model Path')
+    parser.add_argument('--model_path', default="./checkpoints_11251604/ad_detector_best.pth", help='Pretrained Model Path')
     parser.add_argument('--unsave_img', action='store_true', help='Do not save the image after detection')
     parser.add_argument('--vis_dir', default="./vis_results", help='Dir for Visualization')
     parser.add_argument('--image_size', default=448, type=int, help='image size')
@@ -53,7 +54,7 @@ if __name__ == '__main__':
     ####################################################################
     # Prediction
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = resnet50(args=args).to(device)
+    model = resnet34(args=args).to(device)
 
     print('LOADING MODEL...')
     #     if torch.cuda.device_count() > 1:
